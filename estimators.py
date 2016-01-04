@@ -4,30 +4,7 @@ from sklearn import ensemble
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import LogisticRegression
 
-class MeanCityEstimator(base.BaseEstimator, base.RegressorMixin):
-    def __init__(self):
-        self.cities= {}
-        # initialization code
 
-    def fit(self, X, y):
-        # fit the model ...
-        r = pd.DataFrame(X,columns=['city'])
-        r = r.groupby('city')
-        cities = r.groups.keys()
-        for i in cities:
-            index = r.get_group(i).index
-            self.cities[i] = float(pd.DataFrame(y).loc[index].mean())
-        return self
-
-    def predict(self, X):
-        p_city = []
-        for city in X:
-            try:
-                p_city.append(self.cities[city])
-            except:
-                #print 'no city', city
-                p_city.append(3.75)
-        return p_city
 
 # To create your own estimator, simply create a subclass of BaseEstimator, RegressorMixin
 # and implement the __init__, fit, and predict functions
@@ -59,26 +36,3 @@ class EnsembleRegressor(base.BaseEstimator, base.RegressorMixin):
             "LINEAR": self.linear_regression.predict(X),
         })
         return self.ensemble_regression.predict(X_ensemble)
-
-
-class MonthHourEstimator(base.BaseEstimator, base.RegressorMixin):
-    def __init__(self):
-        self.city={}
-        # initialization code
-
-    def fit(self, X, y=None):
-        # fit the model ...
-        cities = X.groupby(['city'])
-        for city in cities.groups.keys():
-            MonthHours = cities.get_group(city).groupby(['month','hour'])
-            self.city[city] = {}
-            for key in MonthHours.groups.keys():
-                self.city[city][key] = MonthHours.get_group(key).temp.mean()
-        return self
-
-    def predict(self, X):
-        p_temp = []
-        for index in range(len(X)):
-            record = X.loc[index]
-            p_temp.append(self.city[record.city][(int(record.month),int(record.hour))])
-        return p_temp
